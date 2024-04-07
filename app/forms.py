@@ -1,17 +1,19 @@
-from flask_uploads import UploadSet, IMAGES
-from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, FileField
-from flask_wtf.file import FileField, FileAllowed, FileRequired
-from wtforms.validators import DataRequired, Length
+from wtforms import Form, TextAreaField,FileField, StringField, PasswordField, validators
+from werkzeug.utils import secure_filename
 
-images = UploadSet('images', IMAGES)
-class MovieForm(FlaskForm):
-    title = StringField('title', validators=[DataRequired()])
+def validate_image(form, field):
+    if field.data:
+        filename = secure_filename(field.data.filename)
+        if not filename.endswith(('.png', '.jpg', '.jpeg', '.gif')):
+            raise validators.ValidationError('Invalid file format. Please upload an image.')
+
+class MovieForm(Form):
+    title = StringField('title', [validators.DataRequired()])
     description = TextAreaField('description', validators=[
-        DataRequired(),
-        Length(min=10, max=1000)
+        validators.DataRequired(),
+        validators.Length(min=10, max=1000)
     ])
     poster = FileField('poster', validators=[
-        FileRequired(),
-        FileAllowed(images, 'Images only!')
+        validators.DataRequired(),
+        validate_image
     ])

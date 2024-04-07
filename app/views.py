@@ -12,6 +12,10 @@ from app.forms import MovieForm
 from app.models import Movie
 from werkzeug.utils import secure_filename
 from app.db import db
+from flask_wtf.csrf import generate_csrf
+from werkzeug.datastructures import CombinedMultiDict
+
+
 ###
 # Routing for your application.
 ###
@@ -20,13 +24,19 @@ from app.db import db
 def index():
     return jsonify(message="This is the beginning of our API")
 
+
+@app.route('/api/v1/csrf-token', methods=['GET'])
+def get_csrf():
+ return jsonify({'csrf_token': generate_csrf()}) 
+
 @app.route('/api/v1/movies', methods=['POST'])
 def create_movie():
-    form = MovieForm(request.form)
-    if request.method == 'POST' and form.validate_on_submit():
+    form = MovieForm(CombinedMultiDict((request.files, request.form)))
+    if request.method == 'POST' and form.validate():
         poster = form.poster.data
         filename = secure_filename(poster.filename)
-        poster.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        current_dir = os.getcwd()
+        poster.save(os.path.join(current_dir, app.config['UPLOAD_FOLDER'], filename))
         new_movie = Movie({
             'title': form.title.data,
             'description': form.description.data,
