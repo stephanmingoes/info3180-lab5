@@ -14,6 +14,7 @@ from werkzeug.utils import secure_filename
 from app.db import db
 from flask_wtf.csrf import generate_csrf
 from werkzeug.datastructures import CombinedMultiDict
+from flask import send_from_directory
 
 
 ###
@@ -74,6 +75,27 @@ def form_errors(form):
 
     return error_messages
 
+
+@app.route('/api/v1/movies', methods=['GET'])
+def get_movies():
+    movies = Movie.query.all()
+    movie_list = []
+    for movie in movies:
+        movie_data = {
+            'id': movie.id,
+            'title': movie.title,
+            'description': movie.description,
+            'poster': f"http://127.0.0.1:8080/api/v1/posters/{movie.poster}"
+        }
+        movie_list.append(movie_data)
+    return jsonify({'movies': movie_list})
+
+@app.route('/api/v1/posters/<filename>', methods=['GET'])
+def get_poster(filename):
+    current_dir = os.getcwd()
+    return send_from_directory(os.path.join(current_dir, app.config['UPLOAD_FOLDER']), filename)
+
+
 @app.route('/<file_name>.txt')
 def send_text_file(file_name):
     """Send your static text file."""
@@ -95,5 +117,5 @@ def add_header(response):
 
 @app.errorhandler(404)
 def page_not_found(error):
-    """Custom 404 page."""
-    return render_template('404.html'), 404
+  
+    return jsonify({'error': "Not found"}), 404

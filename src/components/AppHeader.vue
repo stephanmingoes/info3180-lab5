@@ -27,6 +27,9 @@
                 >Create Movie</RouterLink
               >
             </li>
+            <li class="nav-item">
+              <RouterLink class="nav-link" to="/movies">Movies</RouterLink>
+            </li>
           </ul>
         </div>
       </div>
